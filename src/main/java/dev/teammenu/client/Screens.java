@@ -195,7 +195,7 @@ public final class Screens {
 
         @Override
         public void onSync() {
-            if (team() == null) minecraft.setScreen(TeamMenuClient.root());
+            if (team() == null) minecraft.gui.setScreen(TeamMenuClient.root());
             else super.onSync();
         }
 
@@ -251,7 +251,7 @@ public final class Screens {
             list(items, y, top + ph - 32);
 
             List<Act> bottom = new ArrayList<>();
-            bottom.add(new Act("Готово", () -> minecraft.setScreen(null)));
+            bottom.add(new Act("Готово", () -> minecraft.gui.setScreen(null)));
             if (t.manage) {
                 int n = t.requests.size();
                 bottom.add(new Act("Приглашения" + (n > 0 ? " (" + n + ")" : ""), () -> open(new TeamInvites(this, t.id))));
@@ -292,7 +292,7 @@ public final class Screens {
 
         @Override
         public void onSync() {
-            if (find(id) == null) minecraft.setScreen(TeamMenuClient.root());
+            if (find(id) == null) minecraft.gui.setScreen(TeamMenuClient.root());
             else super.onSync();
         }
 
