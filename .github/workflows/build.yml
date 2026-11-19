@@ -9,9 +9,32 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '25'   # поставьте версию Java из build.gradle шаблона
+          java-version: '25'
       - run: chmod +x ./gradlew
       - run: ./gradlew build
+      - name: api-names
+        if: failure()
+        run: |
+          set +e
+          JARS=$(find "$HOME/.gradle" "$PWD/.gradle" -name '*.jar' 2>/dev/null | grep -Ei 'minecraft|fabric|loom')
+          CP=$(echo "$JARS" | tr '\n' ':')
+          LIST=$(for j in $JARS; do unzip -Z1 "$j" 2>/dev/null; done | grep -E '^net/(minecraft/client/gui/|fabricmc/fabric/api/client/.*[Kk]ey)' | grep -v '\$' | sort -u)
+          show() { echo; echo "=== $1"; javap -constants -cp "$CP" "$1" 2>&1 | grep -Ei "${2:-.}"; }
+          names() { echo "$LIST" | grep -E "$1" | sed 's/\.class$//' | tr '/' '.'; }
+          echo "=== gui classes"
+          names '^net/minecraft/client/gui/[A-Za-z]+\.class$'
+          show net.minecraft.client.Minecraft 'screen|gui'
+          show net.minecraft.client.gui.Gui 'screen|message|overlay'
+          show net.minecraft.client.gui.screens.Screen
+          EXTRA=$( { names 'Graphics[A-Za-z]*\.class$|Face[A-Za-z]*\.class$|fabricmc/fabric/api/client/'; javap -cp "$CP" net.minecraft.client.gui.screens.Screen 2>/dev/null | grep -oE 'net\.minecraft\.client\.gui\.[A-Z][A-Za-z]+'; } | grep -v 'Font$' | sort -u)
+          for c in $EXTRA; do show "$c"; done
+          show net.minecraft.client.KeyMapping
+          show 'net.minecraft.client.KeyMapping$Category'
+          show com.mojang.blaze3d.platform.InputConstants 'KEY_G|Type|getKey'
+          show 'com.mojang.blaze3d.platform.InputConstants$Type'
+          show net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry
+          show net.minecraft.client.player.LocalPlayer 'message'
+          show net.minecraft.world.entity.player.Player 'message'
       - uses: actions/upload-artifact@v4
         with:
           name: teammenu
