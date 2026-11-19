@@ -1,10 +1,10 @@
 package dev.teammenu.client;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.components.PlayerFaceRenderer;
+import net.minecraft.client.gui.components.PlayerFaceExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.resources.DefaultPlayerSkin;
@@ -29,7 +29,7 @@ public abstract class TmScreen extends Screen {
     protected int pw, ph, left, top, scroll;
     private int maxScroll;
     private String lastSig = "";
-    private GuiGraphics g;
+    private GuiGraphicsExtractor g;
     private final List<Runnable> back = new ArrayList<>(), front = new ArrayList<>();
 
     protected TmScreen(String title, Screen parent) {
@@ -62,8 +62,8 @@ public abstract class TmScreen extends Screen {
     }
 
     @Override
-    public void renderBackground(GuiGraphics g, int mx, int my, float pt) {
-        super.renderBackground(g, mx, my, pt);
+    public void extractBackground(GuiGraphicsExtractor g, int mx, int my, float pt) {
+        super.extractBackground(g, mx, my, pt);
         this.g = g;
         g.fill(left - 1, top - 1, left + pw + 1, top + ph + 1, BORDER);
         g.fill(left, top, left + pw, top + ph, PANEL);
@@ -73,13 +73,13 @@ public abstract class TmScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics g, int mx, int my, float pt) {
-        super.render(g, mx, my, pt);
+    public void extractRenderState(GuiGraphicsExtractor g, int mx, int my, float pt) {
+        super.extractRenderState(g, mx, my, pt);
         this.g = g;
-        g.drawCenteredString(font, heading(), left + pw / 2, top + 7, TEXT);
+        g.centeredText(font, heading(), left + pw / 2, top + 7, TEXT);
         front.forEach(Runnable::run);
         if (notice != null && System.currentTimeMillis() < noticeUntil)
-            g.drawCenteredString(font, notice, width / 2, Math.min(height - 10, top + ph + 5), RED);
+            g.centeredText(font, notice, width / 2, Math.min(height - 10, top + ph + 5), RED);
     }
 
     @Override
@@ -90,13 +90,13 @@ public abstract class TmScreen extends Screen {
     }
 
     @Override public boolean isPauseScreen() { return false; }
-    @Override public void onClose() { minecraft.setScreen(parent); }
-    protected void open(Screen s) { minecraft.setScreen(s); }
+    @Override public void onClose() { minecraft.gui.setScreen(parent); }
+    protected void open(Screen s) { minecraft.gui.setScreen(s); }
 
     // ---------- рисование
-    protected void text(String s, int x, int y, int color) { g.drawString(font, s, x, y, color); }
-    protected void label(String s, int x, int y, int color) { front.add(() -> g.drawString(font, s, x, y, color)); }
-    protected void labelCentered(String s, int x, int y, int color) { front.add(() -> g.drawCenteredString(font, s, x, y, color)); }
+    protected void text(String s, int x, int y, int color) { g.text(font, s, x, y, color); }
+    protected void label(String s, int x, int y, int color) { front.add(() -> g.text(font, s, x, y, color)); }
+    protected void labelCentered(String s, int x, int y, int color) { front.add(() -> g.centeredText(font, s, x, y, color)); }
     protected void paint(Runnable r) { front.add(r); }
     protected void stripe(int y, int h) { back.add(() -> g.fill(left + 6, y, left + pw - 6, y + h, ROW)); }
     protected String fit(String s, int w) { return font.width(s) <= w ? s : font.plainSubstrByWidth(s, w - 6) + "…"; }
@@ -107,7 +107,7 @@ public abstract class TmScreen extends Screen {
             UUID id = UUID.fromString(uuid);
             PlayerInfo info = minecraft.getConnection() == null ? null : minecraft.getConnection().getPlayerInfo(id);
             var skin = info != null ? info.getSkin() : DefaultPlayerSkin.get(id);
-            PlayerFaceRenderer.draw(g, skin, x, y, 16);
+            PlayerFaceExtractor.extractRenderState(g, skin, x, y, 16);
         });
     }
 
