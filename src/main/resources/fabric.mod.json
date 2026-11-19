@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "teammenu",
+  "version": "1.0.0",
+  "name": "Team Menu",
+  "description": "Команды, приглашения, чат команды и голосовые группы",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["dev.teammenu.TeamMenu"],
+    "client": ["dev.teammenu.client.TeamMenuClient"],
+    "voicechat": ["dev.teammenu.VoiceCompat"]
+  },
+  "depends": { "fabricloader": "*", "fabric-api": "*" },
+  "suggests": { "voicechat": "*" }
+}
